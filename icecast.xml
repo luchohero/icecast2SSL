@@ -2,7 +2,7 @@
     <location>Puyo, Ecuador</location>
     <admin>tu-email@dominio.com</admin>
     <limits>
-        <clients>100</clients>
+        <clients>1000</clients>
         <sources>2</sources>
         <threadpool>5</threadpool>
         <queue-size>524288</queue-size>
