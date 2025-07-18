@@ -1,46 +1,28 @@
 version: '3.7'
 
 services:
-  # --- PROXY AUTOMÁTICO DE NGINX ---
-  nginx-proxy:
-    image: jwilder/nginx-proxy
-    container_name: nginx-proxy
+  # --- NGINX PROXY MANAGER (Todo en uno) ---
+  npm:
+    image: 'jc21/nginx-proxy-manager:latest'
+    container_name: nginx-proxy-manager
+    restart: unless-stopped
     ports:
-      - "80:80"
-      - "443:443"
+      # Puertos públicos para el tráfico web
+      - '80:80'
+      - '443:443'
+      # Puerto para acceder a la interfaz de administración
+      - '8181:81'
     volumes:
-      - certs:/etc/nginx/certs:ro
-      - vhost:/etc/nginx/vhost.d
-      - html:/usr/share/nginx/html
-      - /var/run/docker.sock:/tmp/docker.sock:ro
+      - ./data:/data
+      - ./letsencrypt:/etc/letsencrypt
     networks:
       - proxy-net
-    restart: always
-
-  # --- COMPAÑERO PARA CERTIFICADOS SSL AUTOMÁTICOS ---
-  letsencrypt:
-    image: jrcs/letsencrypt-nginx-proxy-companion
-    container_name: nginx-proxy-le
-    # --- ESTA ES LA SECCIÓN AÑADIDA ---
-    environment:
-      # Le decimos explícitamente cuál es el contenedor del proxy
-      - NGINX_PROXY_CONTAINER=nginx-proxy
-    # --- FIN DE LA SECCIÓN AÑADIDA ---
-    volumes:
-      - certs:/etc/nginx/certs:rw
-      - vhost:/etc/nginx/vhost.d
-      - html:/usr/share/nginx/html
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-    networks:
-      - proxy-net
-    restart: always
-
-volumes:
-  certs:
-  vhost:
-  html:
 
 networks:
   proxy-net:
     external:
-      name: nginx-proxy-net
+      name: nginx-proxy-net # Usa la red externa que ya creamos
+
+volumes:
+  data:
+  letsencrypt:
