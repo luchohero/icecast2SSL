@@ -1,0 +1,26 @@
+version: '3.7'
+
+services:
+  # --- SERVICIO DE ICECAST PARA ESTA RADIO ---
+  icecast:
+    image: vimagick/icecast
+    # El nombre del contenedor debe ser único para cada radio
+    container_name: icecast_interoceanica 
+    volumes:
+      - ./icecast.xml:/etc/icecast.xml
+    # --- Variables para que el proxy la detecte ---
+    environment:
+      - VIRTUAL_HOST=interoceanica.online # <-- CAMBIA ESTO
+      - VIRTUAL_PORT=8000
+      - LETSENCRYPT_HOST=interoceanica.online # <-- CAMBIA ESTO
+      - LETSENCRYPT_EMAIL=tu-email@dominio.com # <-- CAMBIA ESTO
+    networks:
+      # Se conecta a la red compartida para que el proxy pueda verla
+      - proxy-net
+    restart: unless-stopped
+
+networks:
+  proxy-net:
+    # Le decimos a Docker que esta red es externa y ya existe
+    external:
+      name: nginx-proxy-net

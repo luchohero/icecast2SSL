@@ -1,36 +1,44 @@
-version: '2'
+version: '3.7'
 
 services:
+  # --- PROXY AUTOMÁTICO DE NGINX ---
   nginx-proxy:
     image: jwilder/nginx-proxy
-    restart: always
     container_name: nginx-proxy
     ports:
-      - "80:80"   # Puerto HTTP
-      - "443:443" # Puerto HTTPS
+      - "80:80"
+      - "443:443"
     volumes:
-      - conf:/etc/nginx/conf.d
+      - certs:/etc/nginx/certs:ro
       - vhost:/etc/nginx/vhost.d
       - html:/usr/share/nginx/html
-      - dhparam:/etc/nginx/dhparam
-      - certs:/etc/nginx/certs:ro
       - /var/run/docker.sock:/tmp/docker.sock:ro
-    network_mode: bridge
-
-  letsencrypt: # CERTIFICADO SSL
-    image: jrcs/letsencrypt-nginx-proxy-companion
+    networks:
+      # Se conecta a la red que creamos antes
+      - proxy-net
     restart: always
+
+  # --- COMPAÑERO PARA CERTIFICADOS SSL AUTOMÁTICOS ---
+  letsencrypt:
+    image: jrcs/letsencrypt-nginx-proxy-companion
     container_name: nginx-proxy-le
-    volumes_from:
-      - nginx-proxy
     volumes:
       - certs:/etc/nginx/certs:rw
+      - vhost:/etc/nginx/vhost.d
+      - html:/usr/share/nginx/html
       - /var/run/docker.sock:/var/run/docker.sock:ro
-    network_mode: bridge   
+    networks:
+      # También se conecta a la red compartida
+      - proxy-net
+    restart: always
 
 volumes:
-  conf:
+  certs:
   vhost:
   html:
-  dhparam:
-  certs:
+
+networks:
+  proxy-net:
+    # Le decimos a Docker que esta red es externa y ya existe
+    external:
+      name: nginx-proxy-net
